@@ -119,16 +119,46 @@ header {
   flex-flow: row nowrap;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .header-menu {
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .header-menu li {
   border-radius: 3px;
   padding: 5px 15px;
   transition: background-color 0.2s;
+  margin-left: 1rem;
+}
+
+.header-mobile {
+  display: none;
+}
+
+.header-mobile-list {
+  display: none;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  color: var(--text-color);
+  background-color: var(--background-light);
+}
+
+.show {
+  display: block;
+}
+
+.header-mobile-list li {
+  padding: 1rem;
+}
+
+.header-mobile-list li.active {
+  color: white;
+  font-weight: 700;
 }
 
 .header-menu li:hover {
@@ -145,6 +175,21 @@ header {
   color: var(--text-color-light);
 }
 
+li.header-profile {
+  font-weight: bold;
+  background-color: var(--dark);
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+li.header-profile:hover {
+  background-color: var(--dark);
+}
+
 /* footer */
 
 footer {
@@ -158,7 +203,7 @@ footer {
 /* content  */
 
 .content {
-  max-width: 100rem;
+  max-width: 80%;
   width: 100%;
   flex: 1;
   display: flex;
@@ -166,6 +211,47 @@ footer {
   align-self: center;
   align-items: center;
   padding: 2rem 0;
+}
+
+/* Form */
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 60rem;
+}
+
+.form-container h1 {
+  margin-bottom: 2rem;
+}
+
+.form-control {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+}
+
+.form-control label {
+  margin-bottom: 1rem;
+}
+
+.form-control input,
+select {
+  border: var(--border);
+  border-radius: 3px;
+  padding: 1rem 1.5rem;
+}
+
+.form-control textarea {
+  border: var(--border);
+  padding: 1rem 1.5rem;
+  min-height: 30rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 /* block */
@@ -185,4 +271,24 @@ footer {
 
 .p-10 {
   padding: 10px;
+}
+
+
+@media only screen and (max-width: 800px) {
+  .header-menu {
+    display: none;
+  }
+
+  .header-mobile {
+    display: block;
+  }
+
+  .content {
+    max-width: 100%;
+    padding: .5rem;
+  }
+
+  .form-container {
+    width: 100%;
+  }
 }

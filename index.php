@@ -1,24 +1,31 @@
 <?php
-$filename = __DIR__ . '/data/articles.json';
-$articles = [];
+require_once __DIR__ . '/database/database.php';
+
+$authDB = require_once __DIR__ . '/database/security.php';
+$articleDB = require_once __DIR__ . '/database/Models/ArticleDB.php';
+$currentUser = $authDB->isLoggedIn();
+
+$articles = $articleDB->fetchAll();
 $categories = [];
 
-if (file_exists($filename)) {
-    $articles = json_decode(file_get_contents($filename), true);
-    $cattmp = array_map(fn ($article) => $article["category"], $articles);
-    $categories = array_reduce($cattmp, function ($acc, $category) {
-        if (isset($acc[$category])) {
-            $acc[$category]++;
+$_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$selectedCat = $_GET['cat'] ?? '';
+
+if (count($articles)) {
+    $cattmp = array_map(fn ($a) => $a['category'],  $articles);
+    $categories = array_reduce($cattmp, function ($acc, $cat) {
+        if (isset($acc[$cat])) {
+            $acc[$cat]++;
         } else {
-            $acc[$category] = 1;
+            $acc[$cat] = 1;
         }
         return $acc;
     }, []);
-    $artcilePerCategories = array_reduce($articles, function ($acc, $article) {
-        if (isset($acc[$article["category"]])) {
-            $acc[$article["category"]] = [...$acc[$article["category"]], $article];
+    $articlePerCategories = array_reduce($articles, function ($acc, $article) {
+        if (isset($acc[$article['category']])) {
+            $acc[$article['category']][] = $article;
         } else {
-            $acc[$article["category"]] = [$article];
+            $acc[$article['category']] = [$article];
         }
         return $acc;
     }, []);
@@ -26,11 +33,11 @@ if (file_exists($filename)) {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <?php require_once 'includes/head.php' ?>
-    <link rel="stylesheet" href="./public/css/index.css">
+    <link rel="stylesheet" href="/public/css/index.css">
     <title>Blog</title>
 </head>
 
@@ -38,20 +45,54 @@ if (file_exists($filename)) {
     <div class="container">
         <?php require_once 'includes/header.php' ?>
         <div class="content">
-            <div class="category-container">
-                <?php foreach ($categories as $category => $num) : ?>
-                    <h2><?= $category ?></h2>
-                    <div class="articles-container">
-                        <?php foreach ($artcilePerCategories[$category] as $article) : ?>
-                            <div class="article block">
-                                <div class="overflow">
-                                    <div class="img-container" style="background-image: url(<?= $article["image"] ?>);"></div>
-                                </div>
-                                <h3><?= $article["title"] ?></h3>
+            <div class="newsfeed-container">
+                <div class="category-container">
+                    <ul class="category-container">
+                        <li class=<?= $selectedCat ? '' : 'cat-active' ?>>
+                            <a href="/">Tous les articles <span class="small">(<?= count($articles) ?>)</span></a>
+                        </li>
+                        <?php foreach ($categories as $catName => $catNum) : ?>
+                            <li class=<?= $selectedCat ===  $catName ? 'cat-active' : '' ?>>
+                                <a href="/?cat=<?= $catName ?>"> <?= $catName ?><span class="small">(<?= $catNum ?>)</span> </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <div class="newsfeed-content">
+                    <?php if (!$selectedCat) : ?>
+                        <?php foreach ($categories as $cat => $num) : ?>
+                            <h2><?= $cat ?></h2>
+                            <div class="articles-container">
+                                <?php foreach ($articlePerCategories[$cat] as $a) : ?>
+                                    <a class="article block" href="/show-articles.php?id=<?= $a["id"] ?>">
+                                        <div class="overflow">
+                                            <div class="img-container" style="background-image:url(<?= $a['image'] ?>"></div>
+                                        </div>
+                                        <h3><?= $a['title'] ?></h3>
+                                        <?php if ($a['author']) : ?>
+                                            <div class="article-author">
+                                                <p><?= $a['firstname'] . " " . $a['lastname'] ?></p>
+                                            </div>
+                                        <?php endif ?>
+                                    </a>
+                                <?php endforeach; ?>
                             </div>
-                        <?php endforeach ?>
-                    </div>
-                <?php endforeach ?>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <h2><?= $selectedCat ?></h2>
+                        <div class="articles-container">
+                            <?php foreach ($articlePerCategories[$selectedCat] as $a) : ?>
+                                <a class="article block" href="/show-articles.php?id=<?= $a["id"] ?>">
+                                    <div class="overflow">
+                                        <div class="img-container" style="background-image:url(<?= $a['image'] ?>"></div>
+                                    </div>
+                                    <h3><?= $a['title'] ?></h3>
+
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         <?php require_once 'includes/footer.php' ?>
